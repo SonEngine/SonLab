@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
+
+
 import sys, os
 
 save_path = os.path.join(os.path.dirname(__file__), "models/mlp2.pt")
@@ -9,9 +12,10 @@ npz_path = os.path.join(os.path.dirname(__file__), "models/params.npz")
 
 class model(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
-        super().__init__()
+        super(model, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.act = nn.Sigmoid()
+        self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, output_size)
         self.device = torch.device("cpu")
 
