@@ -1,0 +1,5 @@
+sgd_sigmoid = 0.9453
+momentum_sigmoid = 0.9453
+momentum_relu = 0.97
+AdaGrads_params_sigmoid = 0.9361
+AdaGrads_params_relu = 0.9516

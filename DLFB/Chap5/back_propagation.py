@@ -32,6 +32,21 @@ class AddLayer:
         dy = dout
         return dx, dy
 
+class ReLU:
+    def __init__(self):
+        self.x = None
+
+    def forward(self, x):
+        self.mask = (x<=0)
+        self.x = x.copy()
+        self.x[self.mask] = 0
+
+        return self.x
+
+    def backward(self, dout):
+        dx = dout
+        dx[self.mask] = 0
+        return dx
 
 class DivideLayer:
     def __init__(self):
@@ -62,16 +77,15 @@ class Sigmoid:
 
 
 class Affine:
-    def __init__(self):
+    def __init__(self, w, b):
         self.x = None
-        self.w = None
-        self.b = None
-
-    def forward(self, x, w, b):
-        self.x = x
         self.w = w
         self.b = b
-        return b + np.dot(x, w)
+
+    def forward(self, x):
+        self.x = x
+       
+        return self.b + np.dot(x, self.w)
 
     def backward(self, dout: np.ndarray):
         # print(f"dout : {dout.shape}, w : {self.w.shape}")

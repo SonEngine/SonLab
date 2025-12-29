@@ -1,30 +1,38 @@
 import numpy as np
 from back_propagation import *
+import back_propagation
+
 
 
 class network:
-    def __init__(self, input_size, hidden_size, output_size, std=0.01):
+    def __init__(self, input_size, hidden_size, output_size, act_name : str):
         self.w = {}
 
-        self.w["w1"] = std * np.random.randn(input_size, hidden_size)
-        self.w["b1"] = std * np.random.randn(hidden_size)
-        self.w["w2"] = std * np.random.randn(hidden_size, output_size)
-        self.w["b2"] = std * np.random.randn(output_size)
+        self.w["w1"] = np.random.randn(input_size, hidden_size)* 2 / np.sqrt(input_size)
+        self.w["b1"] = 0 * np.random.randn(hidden_size)
+        self.w["w2"] = np.random.randn(hidden_size, output_size) * 2 / np.sqrt(hidden_size)
+        self.w["b2"] = 0 * np.random.randn(output_size)
 
         self.softmax_loss = SoftmaxLoss()
-        self.sigmoid = Sigmoid()
-        self.affine0 = Affine()
-        self.affine1 = Affine()
+
+        try:
+            act_cls = getattr(back_propagation, act_name)
+            self.ac = act_cls()
+        except AttributeError:
+            raise ValueError(f"Unknown activation: {act_name}")
+        
+        self.fc1 = Affine(self.w["w1"], self.w["b1"])
+        self.fc2 = Affine(self.w["w2"], self.w["b2"])
 
     def initParams(self, w):
         self.w = w
 
     def predict(self, x, t):
-        w1, b1, w2, b2 = self.w["w1"], self.w["b1"], self.w["w2"], self.w["b2"]
-        a1 = self.affine0.forward(x, w1, b1)
-        z1 = self.sigmoid.forward(a1)
-        a2 = self.affine1.forward(z1, w2, b2)
-        loss = self.softmax_loss.forward(a2, t)
+        
+        x = self.fc1.forward(x)
+        x = self.ac.forward(x)
+        x = self.fc2.forward(x)
+        loss = self.softmax_loss.forward(x, t)
         return loss
 
     def accuracy(self, x, t):
@@ -44,9 +52,9 @@ class network:
     def gradient(self, x, t):
 
         dx_sl = self.softmax_loss.backward()
-        da2, dw2, db2 = self.affine1.backward(dx_sl)
-        dx_sigmoid = self.sigmoid.backward(da2)
-        dx, dw1, db1 = self.affine0.backward(dx_sigmoid)
+        da2, dw2, db2 = self.fc2.backward(dx_sl)
+        dx_ac = self.ac.backward(da2)
+        dx, dw1, db1 = self.fc1.backward(dx_ac)
 
         self.grads = {}
         self.grads["w1"] = dw1
@@ -55,3 +63,5 @@ class network:
         self.grads["b2"] = db2
 
         return self.grads
+
+  
